@@ -8,8 +8,9 @@ import {
   NavItem,
   NavLink
 } from "reactstrap";
+import { withRouter } from "react-router-dom";
 
-export default class NavigationBar extends React.Component {
+class NavigationBar extends React.Component {
   constructor(props) {
     super(props);
 
@@ -35,13 +36,26 @@ export default class NavigationBar extends React.Component {
           <Collapse isOpen={this.state.isOpen} navbar>
             <Nav className="ml-auto" navbar>
               <h5 style={{ color: "#fff", fontWeight: "300" }}>
-                {"Hoy es: " +
-                  new Date().toLocaleDateString("es-ES", {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric"
-                  })}
+                {new Date().toLocaleDateString("es-ES", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric"
+                })}
+              </h5>
+            </Nav>
+            <Nav className="ml-auto" navbar>
+              <div
+                style={{
+                  color: "#b9b9b9",
+                  fontSize: "1rem",
+                  alignSelf: "center",
+                  paddingRight: "0.5rem"
+                }}
+              >
+                Grupo
+              </div>
+              <h5 style={{ color: "#fff", fontWeight: "400" }}>
+                {this.props.match.params.group}
               </h5>
             </Nav>
           </Collapse>
@@ -50,3 +64,5 @@ export default class NavigationBar extends React.Component {
     );
   }
 }
+
+export default (NavigationBar = withRouter(NavigationBar));

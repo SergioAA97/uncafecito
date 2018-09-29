@@ -28,8 +28,19 @@ export class Login extends Component {
   };
 
   onChange = e => {
+    let input = e.target.value;
+
+    if (!Validator.isAlphanumeric(input)) {
+      e.target.value = input.replace(/\W/g, "");
+      return;
+    }
+    if (!Validator.isLength(input, { max: 30 })) {
+      e.target.value = input.slice(0, 30);
+      return;
+    }
+
     this.setState({
-      input: e.target.value
+      input
     });
   };
 
@@ -39,8 +50,11 @@ export class Login extends Component {
     const { input } = this.state;
 
     if (Validator.isEmpty(input)) return;
+    if (!Validator.isAlphanumeric(input)) return;
 
-    const url = groupQueryURL(input);
+    let noEspaces = input.replace(/ /g, "");
+
+    const url = groupQueryURL(noEspaces);
 
     this.setState({
       loading: true
@@ -83,6 +97,10 @@ export class Login extends Component {
       });
   };
 
+  createGroup = () => {
+    this.setState({ redirect: { value: true, path: this.state.input } });
+  };
+
   componentWillUnmount() {
     document.body.style = "background: #fff;";
   }
@@ -91,15 +109,16 @@ export class Login extends Component {
     const { redirect, loading, groupNotFound } = this.state;
 
     //Change Background color
-    document.body.style = "background: #343a40;";
+    document.body.style =
+      "background-image: linear-gradient(45deg, #1A1F24,#343A40); height: 100%; background-size: cover; background-attachment: fixed";
 
-    if (redirect.value) return <Redirect to={this.state.redirect.path} />;
+    if (redirect.value) return <Redirect to={this.state.redirect.path} push />;
 
     return (
       <div className="text-center pb-4 pt-4" style={{ color: "white" }}>
         <Container>
           <Row>
-            <Col xs="12">
+            <Col xs="12" md={{ size: "6", offset: "3" }}>
               <i className="fas fa-coffee fa-7x block mt-4 mb-2" />
               <h4 className="mb-4">Un Cafecito</h4>
               {/*<hr style={{ borderTop: "1px solid rgba(255,255,255,.5)" }} />*/}
@@ -110,7 +129,7 @@ export class Login extends Component {
                     <Input
                       type="text"
                       onChange={this.onChange}
-                      placeholder="Prado28..."
+                      placeholder="LosDelParque..."
                     />
 
                     <InputGroupAddon addonType="append">
@@ -127,7 +146,11 @@ export class Login extends Component {
                           El grupo no existe, utiliza el botón "Crear" para
                           crearlo.
                         </p>
-                        <Button color="success" block>
+                        <Button
+                          color="success"
+                          block
+                          onClick={this.createGroup}
+                        >
                           Crear
                         </Button>
                       </div>
@@ -137,10 +160,27 @@ export class Login extends Component {
             </Col>
           </Row>
         </Container>
+        <CopyRight />
       </div>
     );
   }
 }
+
+const CopyRight = () => (
+  <div
+    style={{
+      position: "fixed",
+      bottom: 0,
+      left: 0,
+      width: "100%",
+      padding: "2rem",
+      color: "white"
+    }}
+  >
+    Sergio Alba Alcalde - Rafael Alba Cascales{" "}
+    <i className="far fa-copyright" /> 2018
+  </div>
+);
 
 const LoginButton = ({ loading, groupNotFound }) => {
   let content = "Entrar";
