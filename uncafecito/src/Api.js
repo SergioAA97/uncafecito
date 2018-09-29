@@ -1,8 +1,5 @@
 //https://cors-anywhere.herokuapp.com/
 
-export const baseDomain =
-  "https://cors-anywhere.herokuapp.com/https://webs.adosclicks.net/uncafecito/db/dbdata.php?&format=json";
-
 /*
     RESPONSE:
     - JSON
@@ -20,7 +17,9 @@ export const baseDomain =
   */
 
 export const elementsQueryURL = (group, date) =>
-  `https://webs.adosclicks.net/uncafecito/db/dbdata.php?query=0&cohorte=${group}&fecha=${date}&format=json`;
+  `${
+    process.env.REACT_APP_BASE_DOMAIN
+  }query=0&cohorte=${group}&fecha=${date}&format=json`;
 
 /*
     RESPONSE:
@@ -28,7 +27,7 @@ export const elementsQueryURL = (group, date) =>
     'TOTAL': NUMBER [0,INF]
   */
 export const groupQueryURL = group =>
-  `https://webs.adosclicks.net/uncafecito/db/dbdata.php?query=5&cohorte=${group}&format=json`;
+  `${process.env.REACT_APP_BASE_DOMAIN}query=5&cohorte=${group}&format=json`;
 
 export const addOrderURL = ({
   group,
@@ -41,4 +40,6 @@ export const addOrderURL = ({
   obsFood,
   code = "1234"
 }) =>
-  `https://webs.adosclicks.net/uncafecito/db/dbdata.php?query=101&cohorte=${group}&fecha=${date}&nombre=${name}&lugar=${place}&bebida=${drink}&obsbebida=${obsDrink}&comida=${food}&obscomida=${obsFood}&codigo=${code}`;
+  `${
+    process.env.REACT_APP_BASE_DOMAIN
+  }query=101&cohorte=${group}&fecha=${date}&nombre=${name}&lugar=${place}&bebida=${drink}&obsbebida=${obsDrink}&comida=${food}&obscomida=${obsFood}&codigo=${code}`;
