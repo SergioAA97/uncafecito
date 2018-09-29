@@ -29,3 +29,16 @@ export const elementsQueryURL = (group, date) =>
   */
 export const groupQueryURL = group =>
   `https://webs.adosclicks.net/uncafecito/db/dbdata.php?query=5&cohorte=${group}&format=json`;
+
+export const addOrderURL = ({
+  group,
+  date,
+  name,
+  place = "LosRotos",
+  drink,
+  obsDrink,
+  food,
+  obsFood,
+  code = "1234"
+}) =>
+  `https://webs.adosclicks.net/uncafecito/db/dbdata.php?query=101&cohorte=${group}&fecha=${date}&nombre=${name}&lugar=${place}&bebida=${drink}&obsbebida=${obsDrink}&comida=${food}&obscomida=${obsFood}&codigo=${code}`;
