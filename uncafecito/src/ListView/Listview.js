@@ -3,24 +3,35 @@ import { Row, Col } from "reactstrap";
 import { elementsQueryURL } from "../Api";
 import AddOrder from "../AddOrder/AddOrder";
 import Axios from "axios";
+import { FormatDate } from "../DateFormat";
+import Validator from "validator";
 
 export default class Listview extends Component {
   state = {
-    selectedGroup: "Prado28",
+    selectedGroup: this.props.match.params.group,
     list: [],
     loaded: false
   };
 
   componentDidMount() {
-    const currentDate = new Date(2018, 9, 21);
+    this.fetchList();
+  }
+
+  fetchList = () => {
+    const currentDate = new Date();
     const year = currentDate.getFullYear().toString();
-
-    let month = currentDate.getMonth();
-    month = month < 10 ? `0${month.toString()}` : month;
-
+    const month = (currentDate.getMonth() + 1).toString();
     const day = currentDate.getDate().toString();
-    const date = `${year}${month}${day}`;
-    console.log(date);
+    const date = FormatDate(year, month, day);
+    console.log("Date for fetched data:", date);
+
+    if (
+      typeof this.state.selectedGroup !== "string" ||
+      this.state.selectedGroup === "undefined"
+    ) {
+      console.log("Error with selectedGroup");
+      return;
+    }
 
     const url = elementsQueryURL(this.state.selectedGroup, date);
 
@@ -44,9 +55,9 @@ export default class Listview extends Component {
         }
       })
       .catch(err => {
-        console.log(err);
+        console.log("Error while fetching data", err);
       });
-  }
+  };
 
   render() {
     const { list } = this.state;
@@ -73,6 +84,9 @@ export default class Listview extends Component {
             <ListGroup name="Comidas">
               {list.map((item, index) => {
                 const { Comida, ObsComida, Nombre } = item;
+                if (!Comida || Validator.isEmpty(Comida.toString())) {
+                  return <React.Fragment key={`DefaultKey${index}`} />;
+                }
                 return (
                   <ListItem
                     key={`${index}Comida`}
@@ -86,7 +100,7 @@ export default class Listview extends Component {
           </Row>
         </Col>
       );
-    } else {
+    } else if (this.state.loaded) {
       content = (
         <Col
           xs="12"
@@ -99,12 +113,23 @@ export default class Listview extends Component {
           <i className="fas fa-arrow-down block fa-7x mt-4 mb-3" />
         </Col>
       );
+    } else {
+      content = (
+        <Col
+          xs="12"
+          className="text-center mt-4"
+          style={{ color: "#91919280" }}
+        >
+          <h3>Cargando...</h3>
+          <i className="fas fa-cog fa-7x block fa-spin mt-4" />
+        </Col>
+      );
     }
 
     return (
       <React.Fragment>
         {content}
-        <AddOrder group={this.state.selectedGroup} />
+        <AddOrder fetchList={this.fetchList} group={this.state.selectedGroup} />
       </React.Fragment>
     );
   }
@@ -114,7 +139,7 @@ const ListGroup = ({ name, children }) => {
   if (children) {
     //style={{ borderLeft: "2px solid #a7a8a9" }}
     return (
-      <Col xs="12" md="6" className="mb-4">
+      <Col xs="12" md={{ size: "8", offset: "2" }} className="mb-4">
         <h3 className="font-weight-normal pl-1">{name}</h3>
         <div>{children}</div>
       </Col>
@@ -128,14 +153,16 @@ const ListItem = ({
   name = "Manuel",
   value = "Cafe con leche",
   obs = "Some obs"
-}) => (
-  <div className="d-flex flex-column">
-    <div className="d-flex flex-grow-1 mt-1 mb-1 pl-4 pr-4">
-      <div className="flex-grow-1" style={{ fontSize: "1.2rem" }}>
-        {value}
+}) => {
+  return (
+    <div className="d-flex flex-column">
+      <div className="d-flex flex-grow-1 mt-1 mb-1 pl-4 pr-4">
+        <div className="flex-grow-1" style={{ fontSize: "1.2rem" }}>
+          {value}
+        </div>
+        {name && <div className="text-muted align-self-end">de {name}</div>}
       </div>
-      <div className="text-muted align-self-end">de {name}</div>
+      {obs && <div className="ml-4 pl-4 text-muted">{obs}</div>}
     </div>
-    {obs && <div className="ml-4 pl-4 text-muted">{obs}</div>}
-  </div>
-);
+  );
+};
