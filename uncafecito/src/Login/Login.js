@@ -118,7 +118,11 @@ export class Login extends Component {
       <div className="text-center pb-4 pt-4" style={{ color: "white" }}>
         <Container>
           <Row>
-            <Col xs="12" md={{ size: "6", offset: "3" }}>
+            <Col
+              xs="12"
+              md={{ size: "8", offset: "2" }}
+              lg={{ size: "6", offset: "3" }}
+            >
               <i className="fas fa-coffee fa-7x block mt-4 mb-2" />
               <h4 className="mb-4">Un Cafecito</h4>
               {/*<hr style={{ borderTop: "1px solid rgba(255,255,255,.5)" }} />*/}

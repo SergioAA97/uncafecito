@@ -28,7 +28,7 @@ class NavigationBar extends React.Component {
     return (
       <div>
         <Navbar color="dark" dark expand="md">
-          <NavbarBrand href="/">
+          <NavbarBrand href="/uncafecito/">
             <i className="fas fa-coffee mr-2" />
             Un Cafecito
           </NavbarBrand>

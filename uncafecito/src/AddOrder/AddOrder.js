@@ -57,6 +57,13 @@ class AddOrder extends React.Component {
     e.persist();
     //console.log(e);
 
+    let input = e.target.value;
+
+    if (!Validator.isLength(input, { max: 30 })) {
+      e.target.value = input.slice(0, 30);
+      return;
+    }
+
     this.setState(state => ({
       order: {
         ...state.order,
