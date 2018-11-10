@@ -6,13 +6,13 @@ import Axios from "axios";
 
 export default class Listview extends Component {
   state = {
-    selectedGroup: "Prado28",
+    selectedGroup: this.props.match.params.group,
     list: [],
     loaded: false
   };
 
   componentDidMount() {
-    const currentDate = new Date(2018, 9, 21);
+    const currentDate = new Date();
     const year = currentDate.getFullYear().toString();
 
     let month = currentDate.getMonth();
