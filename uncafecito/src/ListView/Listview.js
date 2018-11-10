@@ -14,17 +14,8 @@ export default class Listview extends Component {
   };
 
   componentDidMount() {
-<<<<<<< HEAD
-    const currentDate = new Date();
-    const year = currentDate.getFullYear().toString();
-
-    let month = currentDate.getMonth();
-    month = month < 10 ? `0${month.toString()}` : month;
-=======
     this.fetchList();
   }
->>>>>>> DateFormatting
-
   fetchList = () => {
     const currentDate = new Date();
     const year = currentDate.getFullYear().toString();
