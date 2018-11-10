@@ -15,6 +15,7 @@ import Axios from "axios";
 import { addOrderURL } from "../Api";
 import { FormatDate } from "../DateFormat";
 import { ThrowError } from "../Error";
+import { withRouter } from "react-router-dom";
 
 const inputNames = {
   name: "name",
@@ -45,15 +46,23 @@ class AddOrder extends React.Component {
 
     this.state = {
       modal: false,
-      order: initialOrderState
+      order: initialOrderState,
+      loading: false
     };
 
     this.toggle = this.toggle.bind(this);
   }
-
+  //Generic function to create the input entries for all the input values
   onChange = e => {
     e.persist();
     //console.log(e);
+
+    let input = e.target.value;
+
+    if (!Validator.isLength(input, { max: 30 })) {
+      e.target.value = input.slice(0, 30);
+      return;
+    }
 
     this.setState(state => ({
       order: {
@@ -63,9 +72,7 @@ class AddOrder extends React.Component {
     }));
   };
 
-  onSubmit = e => {
-    e.preventDefault();
-
+  submitForm = () => {
     let error = false;
 
     //Validate forms
@@ -138,7 +145,7 @@ class AddOrder extends React.Component {
 
     const date = new Date();
     const year = date.getFullYear();
-    const month = date.getMonth();
+    const month = (date.getMonth() + 1).toString();
     const day = date.getDate();
     const dateString = FormatDate(
       year.toString(),
@@ -155,14 +162,26 @@ class AddOrder extends React.Component {
       food: food,
       obsFood: obsFood
     });
-
+    this.setState({ loading: false });
     Axios.get(url)
       .then(res => {
-        console.log(res);
+        console.log("Response after submitting data", res);
+        if (!res.hasOwnProperty("status")) return;
+        if (res.status !== 200) return;
+
+        this.toggle();
+        this.props.fetchList();
+        this.setState({ loading: false });
       })
       .catch(err => {
         console.log(err);
       });
+  };
+
+  onSubmit = e => {
+    e.preventDefault();
+
+    this.submitForm();
   };
 
   toggle() {
@@ -293,4 +312,4 @@ const FormItem = ({
   </FormGroup>
 );
 
-export default AddOrder;
+export default (AddOrder = withRouter(AddOrder));

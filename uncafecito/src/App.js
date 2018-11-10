@@ -9,7 +9,7 @@ import Login from "./Login/Login";
 class App extends Component {
   render() {
     return (
-      <Router>
+      <Router basename="/uncafecito">
         <div className="App">
           <Switch>
             <Route exact path="/" component={Login} />
