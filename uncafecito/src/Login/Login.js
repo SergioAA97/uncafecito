@@ -13,8 +13,9 @@ import {
 } from "reactstrap";
 import { Redirect } from "react-router-dom";
 import Axios from "axios";
-import { groupQueryURL } from "../Api";
+import { getGroupQueryURL, createGroupQueryURL } from "../Api";
 import Validator from "validator";
+import {UserContext} from "../Context/user-context";
 
 export class Login extends Component {
   state = {
@@ -27,7 +28,7 @@ export class Login extends Component {
     groupNotFound: false
   };
 
-  onChange = e => {
+  onChange= name => e => {
     let input = e.target.value;
 
     if (!Validator.isAlphanumeric(input)) {
@@ -40,53 +41,97 @@ export class Login extends Component {
     }
 
     this.setState({
-      input
+      [name]: e.target.value
     });
   };
 
   onSubmit = e => {
     e.preventDefault();
+    this.getGroup(this.state.groupName,this.state.username);
+  };
 
-    const { input } = this.state;
+  getGroup = (groupName, username) => {
 
-    if (Validator.isEmpty(input)) return;
-    if (!Validator.isAlphanumeric(input)) return;
+    if (Validator.isEmpty(groupName)) return;
+    if (!Validator.isAlphanumeric(groupName)) return;
+    if (Validator.isEmpty(username)) return;
+    if (!Validator.isAlphanumeric(username)) return;
 
-    let noEspaces = input.replace(/ /g, "");
+    groupName = groupName.replace(/ /g, "");
 
-    const url = groupQueryURL(noEspaces);
-
+    //const url = groupQueryURL(noEspaces);
+    const url = getGroupQueryURL();
     this.setState({
-      loading: true
+      loading: true,
+      groupNotFound: false
     });
 
-    Axios.get(url)
+      Axios.get(url, { params: { secret: 'uncafecitosecret', cohorte : groupName, username: username } })
       .then(res => {
         if (res.status === 200) {
-          if (
-            Array.isArray(res.data) &&
-            res.data.length > 0 &&
-            res.data[0].hasOwnProperty("TOTAL")
-          ) {
+          // Decode response
+          const {cohorteFound, usernameFound, result} = res.data;
+          if (cohorteFound) {
             //Group found, redirect
-            const result = res.data[0].TOTAL;
-            if (typeof result === "number" && result > 0) {
+              let { setUserData } = this.context;
+              setUserData(result, username);
+
               this.setState({
                 redirect: {
-                  path: `${input}`,
+                  path: `${groupName}`,
                   value: true
                 },
                 loading: false
               });
-            } else {
-              //No group found, create one
+          }
+          else {
+            //No group found, create one
+            this.setState({
+              groupNotFound: true,
+              loading: false
+            });
+          }
+        }
+      })
+      .catch(err => {
+        console.log(err);
+        if (err.status === 503) {
+          console.log("Service Unavailable");
+        }
+      });
+  }
+
+  createGroup = () => {
+    const { groupName } = this.state;
+    const url = createGroupQueryURL();
+    this.setState({
+      loading: true
+    });
+
+      Axios.post(url)
+      .then(res => {
+        if (res.status === 200) {
+          // Decode response
+          const group = res;
+
+          if (group) {
+            //Group found, redirect
+            
               this.setState({
-                groupNotFound: true,
+                redirect: {
+                  path: `${groupName}`,
+                  value: true
+                },
                 loading: false
               });
-            }
           }
-          console.log(res);
+          else {
+            //No group found, create one
+            this.setState({
+              groupNotFound: true,
+              loading: false
+            });
+          }
         }
       })
       .catch(err => {
@@ -97,16 +142,24 @@ export class Login extends Component {
       });
   };
 
-  createGroup = () => {
-    this.setState({ redirect: { value: true, path: this.state.input } });
-  };
-
   componentWillUnmount() {
     document.body.style = "background: #fff;";
   }
 
   render() {
     const { redirect, loading, groupNotFound } = this.state;
+
+    let storedCohorte , storedUsername;
+    
+    //Check localstorage for credentials
+    if(typeof(Storage) !== 'undefined' && !loading){
+      storedCohorte = localStorage.getItem('cohorte');
+      storedUsername = localStorage.getItem('username');
+      if(storedCohorte && storedUsername) {
+        this.getGroup(storedCohorte, storedUsername);
+      }
+    }
+    
 
     //Change Background color
     document.body.style =
@@ -121,28 +174,29 @@ export class Login extends Component {
             <Col
               xs="12"
               md={{ size: "8", offset: "2" }}
-              lg={{ size: "6", offset: "3" }}
+              lg={{ size: "4", offset: "4" }}
             >
               <i className="fas fa-coffee fa-7x block mt-4 mb-2" />
               <h4 className="mb-4">Un Cafecito</h4>
               {/*<hr style={{ borderTop: "1px solid rgba(255,255,255,.5)" }} />*/}
               <Form className="pl-4 pr-4 text-left" onSubmit={this.onSubmit}>
                 <FormGroup>
-                  <Label for="groupInput">Nombre del grupo del café:</Label>
-                  <InputGroup>
                     <Input
                       type="text"
-                      onChange={this.onChange}
-                      placeholder="LosDelParque..."
+                      onChange={this.onChange('groupName')}
+                      style={{marginBottom: '1rem'}}
+                      placeholder={"Nombre del grupo"}
                     />
-
-                    <InputGroupAddon addonType="append">
-                      <LoginButton
-                        loading={loading}
-                        groupNotFound={groupNotFound}
-                      />
-                    </InputGroupAddon>
-                  </InputGroup>
+                    <Input
+                      type="text"
+                      onChange={this.onChange('username')}
+                      style={{marginBottom: '1rem'}}
+                      placeholder={"Nombre de usuario"}
+                    />
+                  <LoginButton
+                    loading={loading}
+                    groupNotFound={groupNotFound}
+                  />
                   {groupNotFound &&
                     !loading && (
                       <div className="mt-2">
@@ -186,20 +240,20 @@ const CopyRight = () => (
   </div>
 );
 
-const LoginButton = ({ loading, groupNotFound }) => {
+const LoginButton = ({ loading, groupNotFound, onClick }) => {
   let content = "Entrar";
   let color = "secondary";
   if (loading) content = <i className="fas fa-sync fa-spin" />;
   if (groupNotFound) {
-    content = <i className="fas fa-times fa-lg " color="white" />;
-    color = "danger";
+    content = <i className="fas fa-redo " color="white" />;
+    color = "primary";
   }
-
   return (
-    <Button color={color} disabled={groupNotFound}>
+    <Button block type="submit" color={color} onClick={onClick}>
       {content}
     </Button>
   );
 };
 
+Login.contextType = UserContext;
 export default Login;
